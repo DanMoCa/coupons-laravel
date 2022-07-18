@@ -44,7 +44,7 @@ class ItemController extends Controller
      * @return mixed
      */
     public function topFavorites(int $length = 5){
-        return Item::where('quantity','>',0)->orderBy('quantity','ASC')->limit($length)->get();
+        return Item::select('id','quantity')->where('quantity','>',0)->orderBy('quantity','ASC')->limit($length)->get();
     }
 
     /**
