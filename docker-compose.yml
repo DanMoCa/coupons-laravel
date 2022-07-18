@@ -7,7 +7,7 @@ networks:
 services:
     nginx:
         build:
-            context: docker/prod/nginx
+            context: docker/nginx
             dockerfile: nginx.Dockerfile
         container_name: nginx
         depends_on:
@@ -24,7 +24,7 @@ services:
 
     php:
         build:
-            context: docker/prod/php
+            context: docker/php
             dockerfile: php.Dockerfile
         container_name: php
         volumes:
@@ -38,7 +38,7 @@ services:
         ports:
             - "${DB_PORT}:3306"
         volumes:
-            - ./docker/prod/mysql:/var/lib/mysql
+            - ./docker/mysql:/var/lib/mysql
         environment:
             MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
             MYSQL_ROOT_HOST: "%"
@@ -59,7 +59,7 @@ services:
 
     artisan:
         build:
-            context: docker/prod/php
+            context: docker/php
             dockerfile: php.Dockerfile
         container_name: php
         volumes:
@@ -81,7 +81,7 @@ services:
 
     phpunit:
         build:
-            context: docker/prod/php
+            context: docker/php
             dockerfile: php.Dockerfile
         container_name: phpunit
         volumes:
@@ -101,7 +101,7 @@ services:
 
     scheduler:
         build:
-            context: docker/prod/php
+            context: docker/php
             dockerfile: php.Dockerfile
         container_name: scheduler
         volumes:
