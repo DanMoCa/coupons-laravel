@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\CreateItem;
 use App\Models\Item;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class ItemController extends Controller
@@ -44,7 +46,19 @@ class ItemController extends Controller
      * @return mixed
      */
     public function topFavorites(int $length = 5){
-        return Item::select('id','quantity')->where('quantity','>',0)->orderBy('quantity','ASC')->limit($length)->get();
+        // Use this if you want to cache results for favorites
+//        $fromCache = false;
+//        if(Cache::has('items')){
+//            $fromCache = true;
+//            $items = Cache::get('items');
+//        }else{
+//            $items =  Item::select('id','quantity')->where('quantity','>',0)->orderBy('quantity','ASC')->limit($length)->get();
+//            Cache::put('items',$items,60);
+//        }
+
+        // Comment this if using cache
+        $items =  Item::select('id','quantity')->where('quantity','>',0)->orderBy('quantity','ASC')->limit($length)->get();
+        return $items;
     }
 
     /**
@@ -70,12 +84,15 @@ class ItemController extends Controller
 
         // Parse result into a more readable array ['id','price','sold_quantity']
         for($i = 0; $i < count($response->json()); $i++){
-            $item = Item::updateOrCreate([
+            $item = [
                 'id' => $response[$i]['body']['id'],
                 'price' => $response[$i]['body']['price'],
                 'quantity' => $response[$i]['body']['sold_quantity']
-            ]);
-            $items[] = $item->toArray();
+            ];
+            $items[] = $item;
+
+            // Sends a queue job to redis to store the item for favorites
+            CreateItem::dispatch($item)->onQueue('create-item');
         }
 
         // Use Depth First Search to calculate the max combo
